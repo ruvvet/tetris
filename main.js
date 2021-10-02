@@ -7,7 +7,6 @@ const ROWS = 20;
 const CANVAS_WIDTH = GRID_SIZE * COLUMNS;
 const CANVAS_HEIGHT = GRID_SIZE * ROWS;
 
-const shapes = ['S', 'Z', 'T', 'L', 'Line', 'ML', 'Square'];
 const colors = ['red', 'blue', 'green', 'yellow'];
 
 let ctx = null;
@@ -30,7 +29,7 @@ class Shape {
   }
 }
 
-class Line extends Shape {
+class I extends Shape {
   constructor(color, position, rotation) {
     super(color, position, rotation);
   }
@@ -60,7 +59,7 @@ class Line extends Shape {
   }
 }
 
-class Square extends Shape {
+class O extends Shape {
   constructor(color, position, rotation) {
     super(color, position, rotation);
   }
@@ -112,26 +111,196 @@ class S extends Shape {
   }
 }
 
-class Z extends Shape {}
+class Z extends Shape {
+  constructor(color, position, rotation) {
+    super(color, position, rotation);
+  }
 
-class T extends Shape {}
+  getSpaces(opts) {
+    const { x, y, rotation } = {
+      x: this.position.x,
+      y: this.position.y,
+      rotation: this.rotation,
+      ...opts,
+    };
 
-class L extends Shape {}
+    if (rotation % 180 === 0) {
+      return [
+        { x, y },
+        { x: x - 1, y },
+        { x, y: y + 1 },
+        { x: x + 1, y: y + 1 },
+      ];
+    }
+    return [
+      { x, y },
+      { x, y: y - 1 },
+      { x: x - 1, y },
+      { x: x - 1, y: y + 1 },
+    ];
+  }
+}
 
-class ML extends Shape {}
+class T extends Shape {
+  constructor(color, position, rotation) {
+    super(color, position, rotation);
+  }
+
+  getSpaces(opts) {
+    const { x, y, rotation } = {
+      x: this.position.x,
+      y: this.position.y,
+      rotation: this.rotation,
+      ...opts,
+    };
+
+    if (rotation === 90) {
+      return [
+        { x, y },
+        { x, y: y + 1 },
+        { x, y: y - 1 },
+        { x: x + 1, y },
+      ];
+
+      // TODO: can probably replace with ternary inside x/y
+    }
+
+    if (rotation === 180) {
+      return [
+        { x, y },
+        { x: x - 1, y },
+        { x: x + 1, y },
+        { x, y: y - 1 },
+      ];
+    }
+
+    if (rotation === 270) {
+      return [
+        { x, y },
+        { x, y: y + 1 },
+        { x, y: y - 1 },
+        { x: x - 1, y },
+      ];
+    }
+    return [
+      { x, y },
+      { x: x - 1, y },
+      { x: x + 1, y },
+      { x, y: y + 1 },
+    ];
+  }
+}
+
+class L extends Shape {
+  constructor(color, position, rotation) {
+    super(color, position, rotation);
+  }
+
+  getSpaces(opts) {
+    const { x, y, rotation } = {
+      x: this.position.x,
+      y: this.position.y,
+      rotation: this.rotation,
+      ...opts,
+    };
+
+    if (rotation === 90) {
+      return [
+        { x, y },
+        { x, y: y - 1 },
+        { x: x - 1, y },
+        { x: x - 2, y },
+      ];
+    }
+
+    if (rotation === 180) {
+      return [
+        { x, y },
+        { x, y: y + 1 },
+        { x, y: y + 2 },
+        { x: x - 1, y },
+      ];
+    }
+
+    if (rotation === 270) {
+      return [
+        { x, y },
+        { x, y: y + 1 },
+        { x: x + 1, y },
+        { x: x + 2, y },
+      ];
+    }
+    return [
+      { x, y },
+      { x, y: y - 1 },
+      { x, y: y - 2 },
+      { x: x + 1, y },
+    ];
+  }
+}
+
+class J extends Shape {
+  constructor(color, position, rotation) {
+    super(color, position, rotation);
+  }
+
+  getSpaces(opts) {
+    const { x, y, rotation } = {
+      x: this.position.x,
+      y: this.position.y,
+      rotation: this.rotation,
+      ...opts,
+    };
+
+    if (rotation === 90) {
+      return [
+        { x, y },
+        { x, y: y + 1 },
+        { x: x - 1, y },
+        { x: x - 2, y },
+      ];
+    }
+
+    if (rotation === 180) {
+      return [
+        { x, y },
+        { x, y: y + 1 },
+        { x, y: y + 2 },
+        { x: x + 1, y },
+      ];
+    }
+
+    if (rotation === 270) {
+      return [
+        { x, y },
+        { x, y: y - 1 },
+        { x: x + 1, y },
+        { x: x + 2, y },
+      ];
+    }
+    return [
+      { x, y },
+      { x, y: y - 1 },
+      { x, y: y - 2 },
+      { x: x - 1, y },
+    ];
+  }
+}
+
+const shapes = [I, O, S, Z, T, L, J];
 
 /////////////////
 
-const generateColor = () => {
-  const index = Math.floor(Math.random() * colors.length);
-  return colors[index];
-};
+const getCoordinates = (key) => key.split(',').map((c) => parseInt(c));
+
+const generateColor = () => colors[Math.floor(Math.random() * colors.length)];
 
 const generateShape = () => {
-  // console.log('making a new shape?');
-  // const index = Math.floor(Math.random() * shapes.length);
-  // return shapes[index];
-  return new Line(generateColor(), { x: 3, y: 0 }, 0);
+  return new shapes[Math.floor(Math.random() * shapes.length)](
+    generateColor(),
+    { x: Math.floor(COLUMNS / 2), y: 0 },
+    0
+  );
 };
 
 const init = () => {
@@ -179,7 +348,7 @@ const init = () => {
 
   //randomly select upcoming  []
 
-  fallingPiece = new Line(generateColor(), { x: 3, y: 0 }, 0);
+  fallingPiece = generateShape();
 
   // start game loop
   gameLoop();
@@ -215,7 +384,7 @@ const drawPiece = () => {
 
 const drawStack = () => {
   for (const key of Object.keys(stack)) {
-    const [x, y] = key.split(',').map((c) => parseInt(c));
+    const [x, y] = getCoordinates(key);
     ctx.fillStyle = stack[key];
     ctx.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
   }
@@ -232,7 +401,7 @@ const checkCollision = (spaces) => {
 
 const updateStack = (clearedRow) => {
   for (const space in stack) {
-    const [x, y] = space.split(',').map((c) => parseInt(c));
+    const [x, y] = getCoordinates(space);
     if (y <= clearedRow) {
       stack[`${x},${y + 1}`] = stack[space];
       delete stack[`${x},${y}`];
@@ -244,18 +413,18 @@ const updateStack = (clearedRow) => {
 
 const checkLineClear = () => {
   let clear = false;
-  let gravity = 0;
+  // let gravity = 0;
   const counter = {};
 
   for (const space in stack) {
-    const [x, y] = space.split(',').map((c) => parseInt(c));
+    const [x, y] = getCoordinates(space);
     counter[y] = (counter[y] || 0) + 1;
   }
 
   for (const row in counter) {
     if (counter[row] === COLUMNS) {
       clear = true;
-      gravity += 1;
+      // gravity += 1;
       for (let i = 0; i < COLUMNS; i++) {
         // clear the row from the stack
         delete stack[`${i},${row}`];
@@ -272,8 +441,13 @@ const checkLineClear = () => {
 
 const checkGameOver = () => {
   for (const space in stack) {
-    console.log(stack);
+    const [x, y] = getCoordinates(space);
+    if (y === 0) {
+      console.log('game over');
+      return true;
+    }
   }
+  return false;
 };
 
 let lastUpdate = Date.now();
@@ -294,7 +468,10 @@ const gameLoop = () => {
         }
 
         checkLineClear();
-        checkGameOver();
+        if (checkGameOver()) {
+          console.log('its really over');
+          return;
+        }
         fallingPiece = generateShape();
         console.log(fallingPiece);
       } else {
