@@ -7,12 +7,12 @@ const ROWS = 20;
 const CANVAS_WIDTH = GRID_SIZE * COLUMNS;
 const CANVAS_HEIGHT = GRID_SIZE * ROWS;
 
-const colors = ['red', 'blue', 'green', 'yellow'];
+const colors = ["red", "blue", "green", "yellow"];
 
 let ctx = null;
 
 let fallingPiece = null;
-const stack = {};
+let stack = {};
 
 class Shape {
   constructor(color, position, rotation) {
@@ -291,7 +291,7 @@ const shapes = [I, O, S, Z, T, L, J];
 
 /////////////////
 
-const getCoordinates = (key) => key.split(',').map((c) => parseInt(c));
+const getCoordinates = (key) => key.split(",").map((c) => parseInt(c));
 
 const generateColor = () => colors[Math.floor(Math.random() * colors.length)];
 
@@ -304,45 +304,56 @@ const generateShape = () => {
 };
 
 const init = () => {
-  const canvas = document.getElementById('canvas');
+  const canvas = document.getElementById("canvas");
   canvas.width = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
 
-  ctx = canvas.getContext('2d');
+  ctx = canvas.getContext("2d");
 
-  document.addEventListener('keyup', (e) => {
+  document.addEventListener("keyup", (e) => {
     if (!fallingPiece) {
       return;
     }
 
     if (
-      e.key === 'ArrowLeft' &&
+      e.key === "ArrowLeft" &&
       !checkCollision(
         fallingPiece.getSpaces({ x: fallingPiece.position.x - 1 })
       )
     ) {
       fallingPiece.position.x -= 1;
     } else if (
-      e.key === 'ArrowRight' &&
+      e.key === "ArrowRight" &&
       !checkCollision(
         fallingPiece.getSpaces({ x: fallingPiece.position.x + 1 })
       )
     ) {
       fallingPiece.position.x += 1;
     } else if (
-      e.key === 'ArrowDown' &&
+      e.key === "ArrowDown" &&
       !checkCollision(
         fallingPiece.getSpaces({ y: fallingPiece.position.y + 1 })
       )
     ) {
       fallingPiece.position.y += 1;
     } else if (
-      e.key === 'ArrowUp' &&
+      e.key === "ArrowUp" &&
       !checkCollision(
         fallingPiece.getSpaces({ rotation: (fallingPiece.rotation + 90) % 360 })
       )
     ) {
       fallingPiece.rotation = (fallingPiece.rotation + 90) % 360;
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (
+      e.key === "ArrowDown" &&
+      !checkCollision(
+        fallingPiece.getSpaces({ y: fallingPiece.position.y + 1 })
+      )
+    ) {
+      fallingPiece.position.y += 1;
     }
   });
 
@@ -355,10 +366,10 @@ const init = () => {
 };
 
 const drawGrid = () => {
-  ctx.strokeStyle = '#000000';
+  ctx.strokeStyle = "#000000";
   ctx.strokeRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  ctx.strokeStyle = '#999999';
+  ctx.strokeStyle = "#999999";
   for (let i = 0; i <= CANVAS_WIDTH; i += GRID_SIZE) {
     ctx.beginPath();
     ctx.moveTo(i, 0);
@@ -400,20 +411,29 @@ const checkCollision = (spaces) => {
 };
 
 const updateStack = (clearedRow) => {
-  for (const space in stack) {
-    const [x, y] = getCoordinates(space);
+  let dropped = false;
+  stack = Object.keys(stack).reduce((newStack, key) => {
+    const [x, y] = getCoordinates(key);
+
+    let newKey = key;
+
     if (y <= clearedRow) {
-      stack[`${x},${y + 1}`] = stack[space];
-      delete stack[`${x},${y}`];
+      newKey = `${x},${y + 1}`;
+
+      dropped = true;
     }
-  }
-  //😥
-  // stack = { ...stack, ...updatedStack };
+
+    newStack[newKey] = stack[key];
+
+    return newStack;
+  }, {});
+
+  return dropped;
 };
 
 const checkLineClear = () => {
-  let clear = false;
-  // let gravity = 0;
+  // let clear = false;
+  let dropped = false;
   const counter = {};
 
   for (const space in stack) {
@@ -423,19 +443,19 @@ const checkLineClear = () => {
 
   for (const row in counter) {
     if (counter[row] === COLUMNS) {
-      clear = true;
-      // gravity += 1;
+      // clear = true;
+
       for (let i = 0; i < COLUMNS; i++) {
         // clear the row from the stack
         delete stack[`${i},${row}`];
       }
       // add +1 to y coordinate for all stack
-      updateStack(row);
+      dropped = updateStack(row);
     }
   }
 
-  if (!clear) {
-    return;
+  if (dropped) {
+    checkLineClear();
   }
 };
 
@@ -443,7 +463,7 @@ const checkGameOver = () => {
   for (const space in stack) {
     const [x, y] = getCoordinates(space);
     if (y === 0) {
-      console.log('game over');
+      console.log("game over");
       return true;
     }
   }
@@ -469,7 +489,7 @@ const gameLoop = () => {
 
         checkLineClear();
         if (checkGameOver()) {
-          console.log('its really over');
+          console.log("its really over");
           return;
         }
         fallingPiece = generateShape();
@@ -490,4 +510,15 @@ const gameLoop = () => {
   requestAnimationFrame(gameLoop);
 };
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener("DOMContentLoaded", init);
+
+//shadow falling piece
+// upcoming pieces
+// score
+
+// insta drop
+// typescript
+//webpack
+//refactor
+// cool math thing for rotations
+//ci/cd pipeline
