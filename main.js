@@ -27,6 +27,54 @@ class Shape {
       ctx.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
     }
   }
+
+  renderShadow() {
+    const stackY = Object.keys(stack).reduce((result, key) => {
+      const [x, y] = getCoordinates(key);
+
+      if (!result[x] || y < result[x]) {
+        result[x] = y;
+      }
+      return result;
+    }, {});
+
+    // const { highestPieceY, lowestStackY } = this.getSpaces().reduce(
+    //   (result, piece) => {
+    //     return {
+    //       highestPieceY:
+    //         piece.y > result.highestPieceY ? piece.y : result.highestPieceY,
+    //       lowestStackY:
+    //         stackY[piece.x] < result.lowestStackY
+    //           ? stackY[piece.x]
+    //           : result.lowestStackY,
+    //     };
+    //   },
+    //   { highestPieceY: 0, lowestStackY: 20 }
+    // );
+
+    const highestPieceY = this.getSpaces().reduce((result, piece) => {
+      return piece.y > result ? piece.y : result;
+    }, 0);
+
+    // const diff = lowestStackY - highestPieceY;
+    let diff = 20 - highestPieceY;
+
+    let wontfit = true;
+
+    while (wontfit) {
+      const shadowSpaces = [];
+      for (const { x, y } of this.getSpaces()) {
+        shadowSpaces.push({x, y:y + diff});
+      }
+      wontfit = checkCollision(shadowSpaces);
+      diff -= 1;
+    }
+
+    ctx.fillStyle = "#00000030";
+    for (const { x, y } of this.getSpaces()) {
+      ctx.fillRect(x * GRID_SIZE, (y + diff) * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+    }
+  }
 }
 
 class I extends Shape {
@@ -391,6 +439,7 @@ const drawPiece = () => {
   }
 
   fallingPiece.render();
+  fallingPiece.renderShadow();
 };
 
 const drawStack = () => {
@@ -493,7 +542,7 @@ const gameLoop = () => {
           return;
         }
         fallingPiece = generateShape();
-        console.log(fallingPiece);
+
       } else {
         fallingPiece.position.y += 1;
       }
@@ -503,7 +552,7 @@ const gameLoop = () => {
   }
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  drawGrid(ctx);
+  drawGrid();
   drawStack();
   drawPiece();
 
