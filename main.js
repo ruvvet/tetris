@@ -7,7 +7,7 @@ const ROWS = 20;
 const CANVAS_WIDTH = GRID_SIZE * COLUMNS;
 const CANVAS_HEIGHT = GRID_SIZE * ROWS;
 
-const colors = ['red', 'blue', 'green', 'yellow'];
+const colors = ["red", "blue", "green", "yellow"];
 
 let ctx = null;
 let ctxScore = null;
@@ -31,37 +31,28 @@ class Shape {
   }
 
   renderShadow() {
-    Object.keys(stack).reduce((result, key) => {
-      const [x, y] = getCoordinates(key);
-
-      if (!result[x] || y < result[x]) {
-        result[x] = y;
-      }
-      return result;
-    }, {});
-
     const highestPieceY = this.getSpaces().reduce((result, piece) => {
       return piece.y > result ? piece.y : result;
     }, 0);
 
     let diff = ROWS - highestPieceY;
 
-    let wontfit = true;
-
-    while (wontfit) {
+    let i = 0;
+    for (; i <= diff; i++) {
       const shadowSpaces = [];
       for (const { x, y } of this.getSpaces()) {
-        shadowSpaces.push({ x, y: y + diff });
+        shadowSpaces.push({ x, y: y + i });
       }
-      wontfit = checkCollision(shadowSpaces);
-      diff -= 1;
+      if (checkCollision(shadowSpaces)) {
+        break;
+      }
     }
 
-    ctx.fillStyle = '#FFFFFF30';
+    ctx.fillStyle = "#FFFFFF30";
     for (const { x, y } of this.getSpaces()) {
       ctx.fillRect(
         x * GRID_SIZE,
-        (y + 1 + diff) * GRID_SIZE,
+        (y + i - 1) * GRID_SIZE,
         GRID_SIZE,
         GRID_SIZE
       );
@@ -331,7 +322,7 @@ const shapes = [I, O, S, Z, T, L, J];
 
 /////////////////
 
-const getCoordinates = (key) => key.split(',').map((c) => parseInt(c));
+const getCoordinates = (key) => key.split(",").map((c) => parseInt(c));
 
 const generateColor = () => colors[Math.floor(Math.random() * colors.length)];
 
@@ -346,8 +337,8 @@ const generateShape = () => {
 /////////////////
 
 const init = () => {
-  const canvas = document.getElementById('canvas');
-  const canvasScore = document.getElementById('canvasScore');
+  const canvas = document.getElementById("canvas");
+  const canvasScore = document.getElementById("canvasScore");
 
   canvas.width = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
@@ -355,37 +346,37 @@ const init = () => {
   canvasScore.width = 500;
   canvasScore.height = 800;
 
-  ctx = canvas.getContext('2d');
-  ctxScore = canvasScore.getContext('2d');
+  ctx = canvas.getContext("2d");
+  ctxScore = canvasScore.getContext("2d");
 
-  document.addEventListener('keyup', (e) => {
+  document.addEventListener("keyup", (e) => {
     if (!fallingPiece) {
       return;
     }
 
     if (
-      e.key === 'ArrowLeft' &&
+      e.key === "ArrowLeft" &&
       !checkCollision(
         fallingPiece.getSpaces({ x: fallingPiece.position.x - 1 })
       )
     ) {
       fallingPiece.position.x -= 1;
     } else if (
-      e.key === 'ArrowRight' &&
+      e.key === "ArrowRight" &&
       !checkCollision(
         fallingPiece.getSpaces({ x: fallingPiece.position.x + 1 })
       )
     ) {
       fallingPiece.position.x += 1;
     } else if (
-      e.key === 'ArrowDown' &&
+      e.key === "ArrowDown" &&
       !checkCollision(
         fallingPiece.getSpaces({ y: fallingPiece.position.y + 1 })
       )
     ) {
       fallingPiece.position.y += 1;
     } else if (
-      e.key === 'ArrowUp' &&
+      e.key === "ArrowUp" &&
       !checkCollision(
         fallingPiece.getSpaces({ rotation: (fallingPiece.rotation + 90) % 360 })
       )
@@ -394,9 +385,9 @@ const init = () => {
     }
   });
 
-  document.addEventListener('keydown', (e) => {
+  document.addEventListener("keydown", (e) => {
     if (
-      e.key === 'ArrowDown' &&
+      e.key === "ArrowDown" &&
       !checkCollision(
         fallingPiece.getSpaces({ y: fallingPiece.position.y + 1 })
       )
@@ -417,10 +408,10 @@ const init = () => {
 };
 
 const drawGrid = () => {
-  ctx.strokeStyle = '#000000';
+  ctx.strokeStyle = "#000000";
   ctx.strokeRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  ctx.strokeStyle = '#999999';
+  ctx.strokeStyle = "#999999";
   for (let i = 0; i <= CANVAS_WIDTH; i += GRID_SIZE) {
     ctx.beginPath();
     ctx.moveTo(i, 0);
@@ -515,7 +506,7 @@ const checkGameOver = () => {
   for (const space in stack) {
     const [x, y] = getCoordinates(space);
     if (y === 0) {
-      console.log('game over');
+      console.log("game over");
       return true;
     }
   }
@@ -525,9 +516,9 @@ const checkGameOver = () => {
 const drawScoreBoard = () => {
   console.log(ctxScore);
 
-  ctxScore.fillStyle = '#FFFFFF';
+  ctxScore.fillStyle = "#FFFFFF";
   ctxScore.fillRect(0, 0, 200, 400);
-  ctx.fillText('HELLO', 0, 0);
+  ctx.fillText("HELLO", 0, 0);
 };
 
 let lastUpdate = Date.now();
@@ -550,7 +541,7 @@ const gameLoop = () => {
 
         checkLineClear();
         if (checkGameOver()) {
-          console.log('its really over');
+          console.log("its really over");
           return;
         }
         fallingPiece = shapesArray[0];
@@ -568,14 +559,14 @@ const gameLoop = () => {
   // ctxScore.clearRect(0, 0, canvasScore.width, canvasScore.height);
 
   drawGrid();
-  drawScoreBoard();
+  // drawScoreBoard();
   drawStack();
   drawPiece();
 
   requestAnimationFrame(gameLoop);
 };
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener("DOMContentLoaded", init);
 
 // upcoming pieces
 // score
