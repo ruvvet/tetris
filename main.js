@@ -7,12 +7,14 @@ const ROWS = 20;
 const CANVAS_WIDTH = GRID_SIZE * COLUMNS;
 const CANVAS_HEIGHT = GRID_SIZE * ROWS;
 
-const colors = ["red", "blue", "green", "yellow"];
+const colors = ['red', 'blue', 'green', 'yellow'];
 
 let ctx = null;
+let ctxScore = null;
 
 let fallingPiece = null;
 let stack = {};
+let shapesArray = [];
 
 class Shape {
   constructor(color, position, rotation) {
@@ -29,7 +31,7 @@ class Shape {
   }
 
   renderShadow() {
-    const stackY = Object.keys(stack).reduce((result, key) => {
+    Object.keys(stack).reduce((result, key) => {
       const [x, y] = getCoordinates(key);
 
       if (!result[x] || y < result[x]) {
@@ -38,41 +40,31 @@ class Shape {
       return result;
     }, {});
 
-    // const { highestPieceY, lowestStackY } = this.getSpaces().reduce(
-    //   (result, piece) => {
-    //     return {
-    //       highestPieceY:
-    //         piece.y > result.highestPieceY ? piece.y : result.highestPieceY,
-    //       lowestStackY:
-    //         stackY[piece.x] < result.lowestStackY
-    //           ? stackY[piece.x]
-    //           : result.lowestStackY,
-    //     };
-    //   },
-    //   { highestPieceY: 0, lowestStackY: 20 }
-    // );
-
     const highestPieceY = this.getSpaces().reduce((result, piece) => {
       return piece.y > result ? piece.y : result;
     }, 0);
 
-    // const diff = lowestStackY - highestPieceY;
-    let diff = 20 - highestPieceY;
+    let diff = ROWS - highestPieceY;
 
     let wontfit = true;
 
     while (wontfit) {
       const shadowSpaces = [];
       for (const { x, y } of this.getSpaces()) {
-        shadowSpaces.push({x, y:y + diff});
+        shadowSpaces.push({ x, y: y + diff });
       }
       wontfit = checkCollision(shadowSpaces);
       diff -= 1;
     }
 
-    ctx.fillStyle = "#00000030";
+    ctx.fillStyle = '#FFFFFF30';
     for (const { x, y } of this.getSpaces()) {
-      ctx.fillRect(x * GRID_SIZE, (y + diff) * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+      ctx.fillRect(
+        x * GRID_SIZE,
+        (y + 1 + diff) * GRID_SIZE,
+        GRID_SIZE,
+        GRID_SIZE
+      );
     }
   }
 }
@@ -339,7 +331,7 @@ const shapes = [I, O, S, Z, T, L, J];
 
 /////////////////
 
-const getCoordinates = (key) => key.split(",").map((c) => parseInt(c));
+const getCoordinates = (key) => key.split(',').map((c) => parseInt(c));
 
 const generateColor = () => colors[Math.floor(Math.random() * colors.length)];
 
@@ -351,41 +343,49 @@ const generateShape = () => {
   );
 };
 
+/////////////////
+
 const init = () => {
-  const canvas = document.getElementById("canvas");
+  const canvas = document.getElementById('canvas');
+  const canvasScore = document.getElementById('canvasScore');
+
   canvas.width = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
 
-  ctx = canvas.getContext("2d");
+  canvasScore.width = 500;
+  canvasScore.height = 800;
 
-  document.addEventListener("keyup", (e) => {
+  ctx = canvas.getContext('2d');
+  ctxScore = canvasScore.getContext('2d');
+
+  document.addEventListener('keyup', (e) => {
     if (!fallingPiece) {
       return;
     }
 
     if (
-      e.key === "ArrowLeft" &&
+      e.key === 'ArrowLeft' &&
       !checkCollision(
         fallingPiece.getSpaces({ x: fallingPiece.position.x - 1 })
       )
     ) {
       fallingPiece.position.x -= 1;
     } else if (
-      e.key === "ArrowRight" &&
+      e.key === 'ArrowRight' &&
       !checkCollision(
         fallingPiece.getSpaces({ x: fallingPiece.position.x + 1 })
       )
     ) {
       fallingPiece.position.x += 1;
     } else if (
-      e.key === "ArrowDown" &&
+      e.key === 'ArrowDown' &&
       !checkCollision(
         fallingPiece.getSpaces({ y: fallingPiece.position.y + 1 })
       )
     ) {
       fallingPiece.position.y += 1;
     } else if (
-      e.key === "ArrowUp" &&
+      e.key === 'ArrowUp' &&
       !checkCollision(
         fallingPiece.getSpaces({ rotation: (fallingPiece.rotation + 90) % 360 })
       )
@@ -394,9 +394,9 @@ const init = () => {
     }
   });
 
-  document.addEventListener("keydown", (e) => {
+  document.addEventListener('keydown', (e) => {
     if (
-      e.key === "ArrowDown" &&
+      e.key === 'ArrowDown' &&
       !checkCollision(
         fallingPiece.getSpaces({ y: fallingPiece.position.y + 1 })
       )
@@ -406,18 +406,21 @@ const init = () => {
   });
 
   //randomly select upcoming  []
-
   fallingPiece = generateShape();
+  shapesArray.push(generateShape());
+  shapesArray.push(generateShape());
+  shapesArray.push(generateShape());
+  console.log(shapesArray);
 
   // start game loop
   gameLoop();
 };
 
 const drawGrid = () => {
-  ctx.strokeStyle = "#000000";
+  ctx.strokeStyle = '#000000';
   ctx.strokeRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  ctx.strokeStyle = "#999999";
+  ctx.strokeStyle = '#999999';
   for (let i = 0; i <= CANVAS_WIDTH; i += GRID_SIZE) {
     ctx.beginPath();
     ctx.moveTo(i, 0);
@@ -512,14 +515,23 @@ const checkGameOver = () => {
   for (const space in stack) {
     const [x, y] = getCoordinates(space);
     if (y === 0) {
-      console.log("game over");
+      console.log('game over');
       return true;
     }
   }
   return false;
 };
 
+const drawScoreBoard = () => {
+  console.log(ctxScore);
+
+  ctxScore.fillStyle = '#FFFFFF';
+  ctxScore.fillRect(0, 0, 200, 400);
+  ctx.fillText('HELLO', 0, 0);
+};
+
 let lastUpdate = Date.now();
+
 const gameLoop = () => {
   const now = Date.now();
   if (now - lastUpdate >= 1000) {
@@ -538,11 +550,13 @@ const gameLoop = () => {
 
         checkLineClear();
         if (checkGameOver()) {
-          console.log("its really over");
+          console.log('its really over');
           return;
         }
-        fallingPiece = generateShape();
-
+        fallingPiece = shapesArray[0];
+        shapesArray.shift();
+        shapesArray.push(generateShape());
+        console.log(shapesArray);
       } else {
         fallingPiece.position.y += 1;
       }
@@ -551,17 +565,18 @@ const gameLoop = () => {
     lastUpdate = now;
   }
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // ctxScore.clearRect(0, 0, canvasScore.width, canvasScore.height);
 
   drawGrid();
+  drawScoreBoard();
   drawStack();
   drawPiece();
 
   requestAnimationFrame(gameLoop);
 };
 
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener('DOMContentLoaded', init);
 
-//shadow falling piece
 // upcoming pieces
 // score
 
